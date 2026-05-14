@@ -107,10 +107,21 @@ exports.updateStudent = async (req, res) => {
         const student = await Student.findById(id);
         if (!student) return res.status(404).json({ message: 'Student not found' });
 
-        // Handle seat change logic if needed
-        // For simplicity, just update basic info. Complex seat changes might need separate endpoint.
+        // Prevent manipulation of restricted fields
+        delete updateData.fee;
+        delete updateData.shift;
+        delete updateData.roomType;
+        delete updateData.seatNumber;
         
-        const updatedStudent = await Student.findByIdAndUpdate(id, updateData, { new: true });
+        // Handle studentId uniqueness
+        if (updateData.studentId && updateData.studentId !== student.studentId) {
+            const existing = await Student.findOne({ studentId: updateData.studentId });
+            if (existing) {
+                return res.status(400).json({ message: 'Student ID already in use' });
+            }
+        }
+        
+        const updatedStudent = await Student.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
         res.json({ message: 'Student updated successfully', updatedStudent });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
@@ -148,6 +159,14 @@ exports.addPayment = async (req, res) => {
         if (!student) return res.status(404).json({ message: 'Student not found' });
 
         const paidAmount = parseFloat(amount);
+        if (isNaN(paidAmount) || paidAmount <= 0) {
+            return res.status(400).json({ message: 'Invalid payment amount' });
+        }
+
+        if (paidAmount > student.fee.remaining) {
+            return res.status(400).json({ message: 'Payment amount exceeds remaining balance' });
+        }
+
         student.fee.paid += paidAmount;
         student.fee.remaining = student.fee.total - student.fee.paid;
         

@@ -12,9 +12,9 @@ const studentSchema = new mongoose.Schema({
     joiningDate: { type: Date, default: Date.now },
     remark: { type: String },
     fee: {
-        total: { type: Number, required: true },
-        paid: { type: Number, default: 0 },
-        remaining: { type: Number, required: true },
+        total: { type: Number, required: true, min: [0, 'Total fee cannot be negative'] },
+        paid: { type: Number, default: 0, min: [0, 'Paid amount cannot be negative'] },
+        remaining: { type: Number, required: true, min: [0, 'Remaining fee cannot be negative'] },
         status: { type: String, enum: ['Paid', 'Pending', 'Partial Paid'], default: 'Pending' },
         paymentHistory: [{
             amount: Number,
