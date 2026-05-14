@@ -7,6 +7,7 @@ import Students from './pages/Students';
 import Seats from './pages/Seats';
 import Payments from './pages/Payments';
 import Settings from './pages/Settings';
+import { Analytics } from '@vercel/analytics/react';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
@@ -33,6 +34,7 @@ function App() {
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>
+      <Analytics />
     </Router>
   );
 }
