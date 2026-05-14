@@ -17,7 +17,7 @@ const Settings = () => {
     const fetchFees = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('http://localhost:5000/api/fees', {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/fees`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.data) {
@@ -36,7 +36,7 @@ const Settings = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      await axios.put('http://localhost:5000/api/fees', fees, {
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/fees`, fees, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert('Fee structure updated successfully!');

@@ -21,7 +21,7 @@ const Payments = () => {
       if (search) params.append('search', search);
       if (statusFilter) params.append('status', statusFilter);
       
-      const res = await axios.get(`http://localhost:5000/api/students?${params.toString()}`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/students?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setStudents(res.data);
@@ -41,7 +41,7 @@ const Payments = () => {
     if (!selectedStudent || !paymentAmount) return;
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`http://localhost:5000/api/students/${selectedStudent._id}/payment`, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/students/${selectedStudent._id}/payment`, {
         amount: paymentAmount,
         method: paymentMethod
       }, {
