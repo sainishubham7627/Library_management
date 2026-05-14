@@ -36,7 +36,7 @@ const Seats = () => {
   const fetchSeats = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/seats', {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/seats`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSeats(res.data);
@@ -54,7 +54,7 @@ const Seats = () => {
   const initSeats = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5000/api/seats/init', {}, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/seats/init`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchSeats();

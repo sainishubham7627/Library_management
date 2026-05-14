@@ -28,7 +28,7 @@ const Students = () => {
   const fetchFees = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/fees', {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/fees`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setFeeStructure(res.data);
@@ -46,7 +46,7 @@ const Students = () => {
       if (statusFilter) params.append('status', statusFilter);
       if (roomFilter) params.append('roomType', roomFilter);
 
-      const res = await axios.get(`http://localhost:5000/api/students?${params.toString()}`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/students?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setStudents(res.data);
@@ -60,7 +60,7 @@ const Students = () => {
   const fetchAllSeats = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/seats', {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/seats`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAllSeats(res.data);
@@ -134,7 +134,7 @@ const Students = () => {
     }
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5000/api/students', formData, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/students`, formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setShowAddModal(false);
@@ -155,7 +155,7 @@ const Students = () => {
     }
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`http://localhost:5000/api/students/${editData._id}`, editData, {
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/students/${editData._id}`, editData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setShowEditModal(false);
@@ -174,7 +174,7 @@ const Students = () => {
     if (!window.confirm('Are you sure you want to delete this student?')) return;
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/api/students/${id}`, {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/students/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchStudents();

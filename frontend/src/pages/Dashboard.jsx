@@ -26,7 +26,7 @@ const Dashboard = () => {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('http://localhost:5000/api/students/dashboard', {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/students/dashboard`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setStats(res.data);
