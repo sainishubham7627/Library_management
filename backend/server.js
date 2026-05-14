@@ -18,6 +18,11 @@ app.use('/api/students', studentRoutes);
 app.use('/api/seats', seatRoutes);
 app.use('/api/fees', feeRoutes);
 
+// Health check route for Render/Vercel
+app.get('/', (req, res) => {
+    res.status(200).json({ message: 'Jagannath Library Backend is running successfully!' });
+});
+
 const PORT = process.env.PORT || 5000;
 
 mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/library-seat-mgmt')
