@@ -1,21 +1,24 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const Login = ({ setAuth }) => {
+const Signup = ({ setAuth }) => {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleLogin = async (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login`, { username, password });
+      const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/register`, { 
+        name, email, username, password 
+      });
       localStorage.setItem('token', response.data.token);
       setAuth(true);
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
+      setError(err.response?.data?.message || 'Signup failed');
     }
   };
 
@@ -43,7 +46,7 @@ const Login = ({ setAuth }) => {
         </div>
       </div>
 
-      {/* Right Side - Login Form */}
+      {/* Right Side - Signup Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 lg:p-24 relative overflow-hidden">
         {/* Decorative background blobs */}
         <div className="absolute top-[-10%] right-[-5%] w-96 h-96 bg-teal-500/10 rounded-full blur-3xl"></div>
@@ -54,32 +57,54 @@ const Login = ({ setAuth }) => {
             <div className="lg:hidden w-16 h-16 bg-gradient-to-br from-teal-400 to-emerald-600 rounded-xl shadow-lg flex items-center justify-center mb-6 mx-auto">
               <span className="text-white font-bold text-2xl font-outfit">J</span>
             </div>
-            <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white font-outfit">Welcome back</h2>
-            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Please enter your admin credentials</p>
+            <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white font-outfit">Create an Account</h2>
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Register as a new admin to manage the library</p>
           </div>
           
-          <form className="mt-8 space-y-6" onSubmit={handleLogin}>
+          <form className="mt-8 space-y-6" onSubmit={handleSignup}>
             {error && <div className="text-rose-500 text-sm text-center bg-rose-50 dark:bg-rose-900/30 p-3 rounded-xl border border-rose-100 dark:border-rose-800/50">{error}</div>}
             
-            <div className="space-y-5">
+            <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Username</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Full Name</label>
                 <input
                   type="text"
                   required
-                  className="appearance-none rounded-xl relative block w-full px-4 py-3 border border-slate-200 dark:border-slate-700 placeholder-slate-400 text-slate-900 dark:text-white bg-white/80 dark:bg-slate-900/50 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all sm:text-sm"
-                  placeholder="Enter username"
+                  className="appearance-none rounded-xl relative block w-full px-4 py-2 border border-slate-200 dark:border-slate-700 placeholder-slate-400 text-slate-900 dark:text-white bg-white/80 dark:bg-slate-900/50 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all sm:text-sm"
+                  placeholder="Enter full name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email Address</label>
+                <input
+                  type="email"
+                  required
+                  className="appearance-none rounded-xl relative block w-full px-4 py-2 border border-slate-200 dark:border-slate-700 placeholder-slate-400 text-slate-900 dark:text-white bg-white/80 dark:bg-slate-900/50 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all sm:text-sm"
+                  placeholder="Enter email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Username</label>
+                <input
+                  type="text"
+                  required
+                  className="appearance-none rounded-xl relative block w-full px-4 py-2 border border-slate-200 dark:border-slate-700 placeholder-slate-400 text-slate-900 dark:text-white bg-white/80 dark:bg-slate-900/50 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all sm:text-sm"
+                  placeholder="Choose a unique username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Password</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Password</label>
                 <input
                   type="password"
                   required
-                  className="appearance-none rounded-xl relative block w-full px-4 py-3 border border-slate-200 dark:border-slate-700 placeholder-slate-400 text-slate-900 dark:text-white bg-white/80 dark:bg-slate-900/50 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all sm:text-sm"
-                  placeholder="Enter password"
+                  className="appearance-none rounded-xl relative block w-full px-4 py-2 border border-slate-200 dark:border-slate-700 placeholder-slate-400 text-slate-900 dark:text-white bg-white/80 dark:bg-slate-900/50 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all sm:text-sm"
+                  placeholder="Create a strong password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -91,14 +116,14 @@ const Login = ({ setAuth }) => {
                 type="submit"
                 className="group relative w-full flex justify-center py-3.5 px-4 border border-transparent text-sm font-semibold rounded-xl text-white bg-slate-900 hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-all duration-200 hover:shadow-lg hover:shadow-teal-500/30 dark:bg-teal-600 dark:hover:bg-teal-500"
               >
-                Sign In to Dashboard
+                Sign Up as Admin
               </button>
             </div>
             
             <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-4">
-              Don't have an account?{' '}
-              <Link to="/signup" className="font-semibold text-teal-600 hover:text-teal-500 dark:text-teal-400 dark:hover:text-teal-300 transition-colors">
-                Sign up here
+              Already have an account?{' '}
+              <Link to="/login" className="font-semibold text-teal-600 hover:text-teal-500 dark:text-teal-400 dark:hover:text-teal-300 transition-colors">
+                Sign in here
               </Link>
             </p>
           </form>
@@ -108,4 +133,4 @@ const Login = ({ setAuth }) => {
   );
 };
 
-export default Login;
+export default Signup;
