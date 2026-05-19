@@ -80,6 +80,7 @@ const Students = () => {
   useEffect(() => {
     fetchStudents();
     fetchFees();
+    fetchAllSeats();
   }, [search, shiftFilter, statusFilter, roomFilter]);
 
   useEffect(() => {
