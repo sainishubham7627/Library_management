@@ -114,7 +114,7 @@ exports.startDemo = async (req, res) => {
                 {
                     adminId: admin._id, fullName: 'Amit Kumar', mobileNumber: '9123456789', studentId: 'S03',
                     address: 'Pune', shift: 'Day', roomType: 'AC', seatNumber: 'A1', joiningDate: past28Days,
-                    fee: { total: 500, paid: 500, remaining: 0, status: 'Paid', paymentHistory: [{ amount: 500, method: 'Card' }] }
+                    fee: { total: 500, paid: 500, remaining: 0, status: 'Paid', paymentHistory: [{ amount: 500, method: 'Other' }] }
                 },
                 {
                     adminId: admin._id, fullName: 'Sneha Gupta', mobileNumber: '9876123450', studentId: 'S04',
