@@ -2,7 +2,7 @@ const Seat = require('../models/Seat');
 
 exports.initializeSeats = async (req, res) => {
     try {
-        const existingSeats = await Seat.countDocuments();
+        const existingSeats = await Seat.countDocuments({ adminId: req.admin.id });
         if (existingSeats > 0) {
             return res.status(400).json({ message: 'Seats already initialized' });
         }
@@ -10,11 +10,11 @@ exports.initializeSeats = async (req, res) => {
         const seatsToCreate = [];
         // Normal Hall Seats: H1 - H49
         for (let i = 1; i <= 49; i++) {
-            seatsToCreate.push({ seatNumber: `H${i}`, roomType: 'Normal' });
+            seatsToCreate.push({ adminId: req.admin.id, seatNumber: `H${i}`, roomType: 'Normal' });
         }
         // AC Room Seats: AC01 - AC25
         for (let i = 1; i <= 25; i++) {
-            seatsToCreate.push({ seatNumber: `AC${i < 10 ? '0' + i : i}`, roomType: 'AC' });
+            seatsToCreate.push({ adminId: req.admin.id, seatNumber: `AC${i < 10 ? '0' + i : i}`, roomType: 'AC' });
         }
 
         await Seat.insertMany(seatsToCreate);
@@ -26,7 +26,7 @@ exports.initializeSeats = async (req, res) => {
 
 exports.getSeats = async (req, res) => {
     try {
-        const seats = await Seat.find().populate('occupants.morning occupants.day occupants.full', 'fullName studentId shift');
+        const seats = await Seat.find({ adminId: req.admin.id }).populate('occupants.morning occupants.day occupants.full', 'fullName studentId shift');
         res.json(seats);
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
@@ -35,7 +35,7 @@ exports.getSeats = async (req, res) => {
 
 exports.getSeatDetails = async (req, res) => {
     try {
-        const seat = await Seat.findOne({ seatNumber: req.params.seatNumber })
+        const seat = await Seat.findOne({ adminId: req.admin.id, seatNumber: req.params.seatNumber })
             .populate('occupants.morning occupants.day occupants.full', 'fullName studentId mobileNumber shift');
         if (!seat) {
             return res.status(404).json({ message: 'Seat not found' });

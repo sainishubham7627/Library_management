@@ -2,9 +2,9 @@ const FeeStructure = require('../models/FeeStructure');
 
 exports.getFeeStructure = async (req, res) => {
     try {
-        let fees = await FeeStructure.findOne();
+        let fees = await FeeStructure.findOne({ adminId: req.admin.id });
         if (!fees) {
-            fees = new FeeStructure();
+            fees = new FeeStructure({ adminId: req.admin.id });
             await fees.save();
         }
         res.json(fees);
@@ -15,9 +15,9 @@ exports.getFeeStructure = async (req, res) => {
 
 exports.updateFeeStructure = async (req, res) => {
     try {
-        let fees = await FeeStructure.findOne();
+        let fees = await FeeStructure.findOne({ adminId: req.admin.id });
         if (!fees) {
-            fees = new FeeStructure(req.body);
+            fees = new FeeStructure({ ...req.body, adminId: req.admin.id });
             await fees.save();
         } else {
             fees = await FeeStructure.findByIdAndUpdate(fees._id, req.body, { new: true });

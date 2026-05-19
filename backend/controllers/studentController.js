@@ -3,9 +3,9 @@ const Seat = require('../models/Seat');
 
 const FeeStructure = require('../models/FeeStructure');
 
-const getDynamicFee = async (shift, roomType) => {
-    let fees = await FeeStructure.findOne();
-    if (!fees) fees = new FeeStructure(); // fallback defaults
+const getDynamicFee = async (shift, roomType, adminId) => {
+    let fees = await FeeStructure.findOne({ adminId });
+    if (!fees) fees = new FeeStructure({ adminId }); // fallback defaults
     
     if (shift === 'Morning') return roomType === 'AC' ? fees.morningAC : fees.morningNormal;
     if (shift === 'Day') return roomType === 'AC' ? fees.dayAC : fees.dayNormal;
@@ -17,13 +17,13 @@ exports.addStudent = async (req, res) => {
         const { fullName, mobileNumber, studentId, address, shift, roomType, seatNumber, amountPaid, paymentMethod, remark, isPayLater } = req.body;
 
         // Check if student exists
-        const existingStudent = await Student.findOne({ studentId });
+        const existingStudent = await Student.findOne({ adminId: req.admin.id, studentId });
         if (existingStudent) {
             return res.status(400).json({ message: 'Student ID already exists' });
         }
 
         // Validate Seat
-        const seat = await Seat.findOne({ seatNumber, roomType });
+        const seat = await Seat.findOne({ adminId: req.admin.id, seatNumber, roomType });
         if (!seat) {
             return res.status(400).json({ message: 'Invalid seat or room type mismatch' });
         }
@@ -43,7 +43,7 @@ exports.addStudent = async (req, res) => {
         }
 
         // Calculate Fees
-        const totalFee = await getDynamicFee(shift, roomType);
+        const totalFee = await getDynamicFee(shift, roomType, req.admin.id);
         const paid = isPayLater ? 0 : (amountPaid ? parseFloat(amountPaid) : 0);
         const remaining = totalFee - paid;
         let status = 'Pending';
@@ -56,6 +56,7 @@ exports.addStudent = async (req, res) => {
         }
 
         const student = new Student({
+            adminId: req.admin.id,
             fullName, mobileNumber, studentId, address, shift, roomType, seatNumber,
             remark,
             fee: { total: totalFee, paid, remaining, status, paymentHistory }
@@ -79,7 +80,7 @@ exports.addStudent = async (req, res) => {
 exports.getStudents = async (req, res) => {
     try {
         const { search, shift, status, roomType } = req.query;
-        let query = {};
+        let query = { adminId: req.admin.id };
 
         if (search) {
             query.$or = [
@@ -104,7 +105,7 @@ exports.updateStudent = async (req, res) => {
         const { id } = req.params;
         const updateData = req.body;
         
-        const student = await Student.findById(id);
+        const student = await Student.findOne({ _id: id, adminId: req.admin.id });
         if (!student) return res.status(404).json({ message: 'Student not found' });
 
         // Prevent manipulation of restricted fields
@@ -115,13 +116,13 @@ exports.updateStudent = async (req, res) => {
         
         // Handle studentId uniqueness
         if (updateData.studentId && updateData.studentId !== student.studentId) {
-            const existing = await Student.findOne({ studentId: updateData.studentId });
+            const existing = await Student.findOne({ adminId: req.admin.id, studentId: updateData.studentId });
             if (existing) {
                 return res.status(400).json({ message: 'Student ID already in use' });
             }
         }
         
-        const updatedStudent = await Student.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
+        const updatedStudent = await Student.findOneAndUpdate({ _id: id, adminId: req.admin.id }, updateData, { new: true, runValidators: true });
         res.json({ message: 'Student updated successfully', updatedStudent });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
@@ -131,11 +132,11 @@ exports.updateStudent = async (req, res) => {
 exports.deleteStudent = async (req, res) => {
     try {
         const { id } = req.params;
-        const student = await Student.findById(id);
+        const student = await Student.findOne({ _id: id, adminId: req.admin.id });
         if (!student) return res.status(404).json({ message: 'Student not found' });
 
         // Free up seat
-        const seat = await Seat.findOne({ seatNumber: student.seatNumber });
+        const seat = await Seat.findOne({ adminId: req.admin.id, seatNumber: student.seatNumber });
         if (seat) {
             if (seat.occupants.full && seat.occupants.full.toString() === id) seat.occupants.full = null;
             if (seat.occupants.morning && seat.occupants.morning.toString() === id) seat.occupants.morning = null;
@@ -143,7 +144,7 @@ exports.deleteStudent = async (req, res) => {
             await seat.save();
         }
 
-        await Student.findByIdAndDelete(id);
+        await Student.findOneAndDelete({ _id: id, adminId: req.admin.id });
         res.json({ message: 'Student deleted successfully' });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
@@ -155,7 +156,7 @@ exports.addPayment = async (req, res) => {
         const { id } = req.params;
         const { amount, method } = req.body;
         
-        const student = await Student.findById(id);
+        const student = await Student.findOne({ _id: id, adminId: req.admin.id });
         if (!student) return res.status(404).json({ message: 'Student not found' });
 
         const paidAmount = parseFloat(amount);
@@ -187,10 +188,10 @@ exports.addPayment = async (req, res) => {
 
 exports.getDashboardStats = async (req, res) => {
     try {
-        const totalStudentsCount = await Student.countDocuments();
+        const totalStudentsCount = await Student.countDocuments({ adminId: req.admin.id });
         
         // Count occupied seats
-        const seats = await Seat.find();
+        const seats = await Seat.find({ adminId: req.admin.id });
         let occupiedSeats = 0;
         let availableSeats = 0;
 
@@ -208,7 +209,7 @@ exports.getDashboardStats = async (req, res) => {
         });
 
         // Pending payments
-        const pendingPaymentsCount = await Student.countDocuments({ 'fee.status': { $in: ['Pending', 'Partial Paid'] } });
+        const pendingPaymentsCount = await Student.countDocuments({ adminId: req.admin.id, 'fee.status': { $in: ['Pending', 'Partial Paid'] } });
 
         res.json({
             totalStudents: totalStudentsCount,

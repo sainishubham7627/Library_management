@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 
 const seatSchema = new mongoose.Schema({
-    seatNumber: { type: String, required: true, unique: true }, // e.g., H1, AC01
+    adminId: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true },
+    seatNumber: { type: String, required: true }, // e.g., H1, AC01
     roomType: { type: String, enum: ['Normal', 'AC'], required: true },
     occupants: {
         morning: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', default: null }, // 6 AM - 2 PM
@@ -9,6 +10,8 @@ const seatSchema = new mongoose.Schema({
         full: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', default: null }     // 6 AM - 10 PM
     }
 }, { timestamps: true });
+
+seatSchema.index({ adminId: 1, seatNumber: 1 }, { unique: true });
 
 // Helper virtual to check if available for a specific shift
 seatSchema.methods.isAvailableFor = function(shift) {

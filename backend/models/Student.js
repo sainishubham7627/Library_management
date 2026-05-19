@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
 
 const studentSchema = new mongoose.Schema({
+    adminId: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', required: true },
     fullName: { type: String, required: true },
     mobileNumber: { type: String, required: true, match: [/^\d{10}$/, 'Mobile number must be 10 digits'] },
-    studentId: { type: String, required: true, unique: true, match: [/^S\d+$/, 'Student ID must start with S followed by numbers'] },
+    studentId: { type: String, required: true, match: [/^S\d+$/, 'Student ID must start with S followed by numbers'] },
     address: { type: String, required: true },
     profilePhoto: { type: String }, // URL or path
     shift: { type: String, enum: ['Morning', 'Day', 'Full Shift'], required: true },
@@ -23,5 +24,7 @@ const studentSchema = new mongoose.Schema({
         }]
     }
 }, { timestamps: true });
+
+studentSchema.index({ adminId: 1, studentId: 1 }, { unique: true });
 
 module.exports = mongoose.model('Student', studentSchema);
