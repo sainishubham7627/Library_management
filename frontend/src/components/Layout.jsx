@@ -6,6 +6,14 @@ const Layout = ({ setAuth }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const handleSearch = (e) => {
+    if (e.key === 'Enter' && searchTerm.trim()) {
+      navigate(`/students?search=${encodeURIComponent(searchTerm)}`);
+      setSearchTerm('');
+    }
+  };
 
   useEffect(() => {
     if (darkMode) {
@@ -26,7 +34,6 @@ const Layout = ({ setAuth }) => {
     { name: 'Members', path: '/students', icon: Users },
     { name: 'Seat Layout', path: '/seats', icon: Grid },
     { name: 'Payments', path: '/payments', icon: CreditCard },
-    { name: 'Reports', path: '/reports', icon: BarChart3 },
     { name: 'Settings', path: '/settings', icon: Settings },
   ];
 
@@ -98,8 +105,11 @@ const Layout = ({ setAuth }) => {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
                 <input
                   type="text"
-                  placeholder="Search by name, phone, seat number..."
+                  placeholder="Search by name, phone, seat number (Press Enter)"
                   className="w-full pl-10 pr-4 py-2 text-sm bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/50 text-slate-900 dark:text-white placeholder-slate-400 transition-all"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={handleSearch}
                 />
               </div>
             </div>

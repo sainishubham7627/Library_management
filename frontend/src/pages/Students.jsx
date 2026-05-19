@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Search, Plus, Edit, Trash2, X } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, X, Eye } from 'lucide-react';
+import { format, addDays } from 'date-fns';
 
 const Students = () => {
   const [students, setStudents] = useState([]);
@@ -12,6 +13,8 @@ const Students = () => {
   
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [viewData, setViewData] = useState(null);
   const [showSeatSelector, setShowSeatSelector] = useState(false);
   const [allSeats, setAllSeats] = useState([]);
 
@@ -170,6 +173,11 @@ const Students = () => {
     setShowEditModal(true);
   };
 
+  const openViewModal = (student) => {
+    setViewData(student);
+    setShowViewModal(true);
+  };
+
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this student?')) return;
     try {
@@ -270,7 +278,7 @@ const Students = () => {
                 <th className="px-6 py-4 font-medium">Student</th>
                 <th className="px-6 py-4 font-medium">Contact</th>
                 <th className="px-6 py-4 font-medium">Seat & Shift</th>
-                <th className="px-6 py-4 font-medium">Remark</th>
+                <th className="px-6 py-4 font-medium">Expiry Date</th>
                 <th className="px-6 py-4 font-medium">Payment Status</th>
                 <th className="px-6 py-4 font-medium">Actions</th>
               </tr>
@@ -282,7 +290,11 @@ const Students = () => {
                 <tr><td colSpan="6" className="text-center py-8">No students found</td></tr>
               ) : (
                 students.map((student) => (
-                  <tr key={student._id} className="border-t border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                  <tr 
+                    key={student._id} 
+                    onClick={() => openViewModal(student)}
+                    className="border-t border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer"
+                  >
                     <td className="px-6 py-4">
                       <div className="font-medium text-gray-900 dark:text-white">{student.fullName}</div>
                       <div className="text-xs text-gray-500">ID: {student.studentId}</div>
@@ -292,8 +304,8 @@ const Students = () => {
                       <div className="font-medium text-gray-900 dark:text-white">{student.seatNumber} ({student.roomType})</div>
                       <div className="text-xs text-gray-500">{student.shift}</div>
                     </td>
-                    <td className="px-6 py-4 max-w-xs truncate" title={student.remark}>
-                      {student.remark || '-'}
+                    <td className="px-6 py-4 text-orange-500 dark:text-orange-400 font-medium">
+                      {format(addDays(new Date(student.joiningDate || student.createdAt), 30), 'MMM dd, yyyy')}
                     </td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -306,10 +318,16 @@ const Students = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex space-x-3">
-                        <button onClick={() => openEditModal(student)} className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); openEditModal(student); }} 
+                          className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                        >
                           <Edit className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDelete(student._id)} className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); handleDelete(student._id); }} 
+                          className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                        >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -522,6 +540,100 @@ const Students = () => {
                     );
                   })}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* View Modal */}
+      {showViewModal && viewData && (
+        <div className="fixed inset-0 z-[70] overflow-y-auto flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md overflow-hidden shadow-xl">
+            <div className="flex justify-between items-center p-6 border-b dark:border-gray-700">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+                <Eye className="w-5 h-5 mr-2 text-indigo-500" />
+                Member Details
+              </h3>
+              <button onClick={() => setShowViewModal(false)} className="text-gray-400 hover:text-gray-500">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              
+              <div className="flex justify-center mb-6">
+                <div className="w-20 h-20 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-3xl font-bold text-indigo-600 dark:text-indigo-400">
+                  {viewData.fullName.charAt(0)}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-y-4 gap-x-6 text-sm">
+                <div>
+                  <p className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">Full Name</p>
+                  <p className="font-medium text-gray-900 dark:text-white mt-1">{viewData.fullName}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">Student ID</p>
+                  <p className="font-medium text-gray-900 dark:text-white mt-1">{viewData.studentId}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">Contact</p>
+                  <p className="font-medium text-gray-900 dark:text-white mt-1">{viewData.mobileNumber}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">Joining Date</p>
+                  <p className="font-medium text-gray-900 dark:text-white mt-1">
+                    {format(new Date(viewData.joiningDate || viewData.createdAt), 'MMM dd, yyyy')}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">Expiry Date</p>
+                  <p className="font-medium text-orange-500 dark:text-orange-400 mt-1">
+                    {format(addDays(new Date(viewData.joiningDate || viewData.createdAt), 30), 'MMM dd, yyyy')}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">Shift</p>
+                  <p className="font-medium text-gray-900 dark:text-white mt-1">{viewData.shift}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">Seat & Room</p>
+                  <p className="font-medium text-gray-900 dark:text-white mt-1">{viewData.seatNumber} ({viewData.roomType})</p>
+                </div>
+                <div>
+                  <p className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">Payment Status</p>
+                  <p className={`font-medium mt-1 ${
+                    viewData.fee.status === 'Paid' ? 'text-green-500' :
+                    viewData.fee.status === 'Pending' ? 'text-red-500' : 'text-orange-500'
+                  }`}>
+                    {viewData.fee.status}
+                  </p>
+                </div>
+                <div className="col-span-2 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-xl border dark:border-gray-600 mt-2">
+                  <p className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider mb-1">Financials</p>
+                  <div className="flex justify-between">
+                    <span className="text-gray-700 dark:text-gray-300">Total Fee: ₹{viewData.fee.total}</span>
+                    <span className="text-gray-700 dark:text-gray-300">Paid: ₹{viewData.fee.paid}</span>
+                    <span className="text-red-500 font-medium">Pending: ₹{viewData.fee.remaining}</span>
+                  </div>
+                </div>
+                {viewData.address && (
+                  <div className="col-span-2">
+                    <p className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">Address</p>
+                    <p className="font-medium text-gray-900 dark:text-white mt-1">{viewData.address}</p>
+                  </div>
+                )}
+                {viewData.remark && (
+                  <div className="col-span-2">
+                    <p className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">Remark</p>
+                    <p className="font-medium text-gray-900 dark:text-white mt-1">{viewData.remark}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="p-4 border-t dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 flex justify-end">
+              <button onClick={() => setShowViewModal(false)} className="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                Close
+              </button>
             </div>
           </div>
         </div>

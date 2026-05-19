@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Users, Grid, IndianRupee, Calendar, CheckCircle, AlertTriangle } from 'lucide-react';
-import { format, isToday, isThisMonth } from 'date-fns';
+import { Users, Grid, IndianRupee, Calendar, Clock, CheckCircle, AlertTriangle, XCircle, TrendingUp, X } from 'lucide-react';
+import { format, isToday, isThisMonth, parseISO, addDays, differenceInDays } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [students, setStudents] = useState([]);
   const [seats, setSeats] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showExpiringModal, setShowExpiringModal] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -66,8 +69,19 @@ const Dashboard = () => {
   let totalTransactions = 0;
   const recentActivities = [];
 
+  const expiringStudents = [];
+
   students.forEach(student => {
     pendingAmount += student.fee.remaining;
+    
+    // Calculate Expiry (Assuming 30 days from joining date)
+    const joinDate = new Date(student.joiningDate || student.createdAt);
+    const expiryDate = addDays(joinDate, 30);
+    const daysLeft = differenceInDays(expiryDate, new Date());
+    
+    if (daysLeft >= 0 && daysLeft <= 3) {
+      expiringStudents.push({ ...student, expiryDate, daysLeft });
+    }
     
     // Check activities
     if (isToday(new Date(student.createdAt))) {
@@ -135,8 +149,11 @@ const Dashboard = () => {
     { name: '19 May', revenue: thisMonthRevenue > 0 ? thisMonthRevenue : 24500 }
   ];
 
-  const StatCard = ({ title, value, subtitle, icon: Icon, colorClass, subtitleColor }) => (
-    <div className="bg-slate-800/40 backdrop-blur-sm p-6 rounded-2xl border border-slate-700/50 hover:bg-slate-800/60 transition-colors group">
+  const StatCard = ({ title, value, subtitle, icon: Icon, colorClass, subtitleColor, onClick, cursorClass }) => (
+    <div 
+      onClick={onClick}
+      className={`bg-slate-800/40 backdrop-blur-sm p-6 rounded-2xl border border-slate-700/50 hover:bg-slate-800/60 transition-colors group ${cursorClass || ''}`}
+    >
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm font-medium text-slate-400 mb-2">{title}</p>
@@ -170,7 +187,16 @@ const Dashboard = () => {
         <StatCard title="Occupied Seats" value={occupiedSeatsCount} subtitle={`${occupiedPercentage}% Occupied`} icon={Users} colorClass="bg-blue-500" subtitleColor="text-blue-400" />
         <StatCard title="Available Seats" value={availableSeatsCount} subtitle={`${availablePercentage}% Available`} icon={CheckCircle} colorClass="bg-green-500" subtitleColor="text-green-400" />
         <StatCard title="Today's Revenue" value={`₹${todaysRevenue}`} subtitle={`From ${todaysPaymentsCount} Payments`} icon={IndianRupee} colorClass="bg-purple-500" subtitleColor="text-purple-400" />
-        <StatCard title="Expiring Soon" value={7} subtitle="Within 3 Days" icon={AlertTriangle} colorClass="bg-orange-500" subtitleColor="text-orange-400" />
+        <StatCard 
+          title="Expiring Soon" 
+          value={expiringStudents.length} 
+          subtitle="Within 3 Days" 
+          icon={AlertTriangle} 
+          colorClass="bg-orange-500" 
+          subtitleColor="text-orange-400" 
+          onClick={() => setShowExpiringModal(true)}
+          cursorClass="cursor-pointer hover:ring-2 hover:ring-orange-500/50"
+        />
       </div>
 
       {/* Middle Row Charts */}
@@ -241,7 +267,7 @@ const Dashboard = () => {
         <div className="bg-slate-800/40 backdrop-blur-sm p-6 rounded-2xl border border-slate-700/50 flex flex-col">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-lg font-semibold text-white">Today's Activity</h3>
-            <button className="text-xs text-teal-400 hover:text-teal-300">View All</button>
+            <button onClick={() => navigate('/payments')} className="text-xs text-teal-400 hover:text-teal-300">View All</button>
           </div>
           <div className="flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar">
             {recentActivities.length > 0 ? recentActivities.slice(0, 5).map((act, i) => (
@@ -267,41 +293,13 @@ const Dashboard = () => {
       </div>
 
       {/* Bottom Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        {/* Today's Shift Status Mini panel */}
-        <div className="bg-slate-800/40 backdrop-blur-sm p-6 rounded-2xl border border-slate-700/50 lg:col-span-3">
-          <h3 className="text-sm font-medium text-slate-400 mb-6 uppercase tracking-wider">Today's Shift Status</h3>
-          <div className="space-y-6">
-            <div>
-              <div className="flex justify-between text-sm mb-2">
-                <div className="flex items-center"><span className="w-2 h-2 rounded-full bg-blue-500 mr-2"></span><span className="text-slate-300">Morning Shift</span></div>
-                <span className="text-slate-400">{morningCount} / {totalSeats || 120}</span>
-              </div>
-              <div className="w-full bg-slate-700 rounded-full h-1.5"><div className="bg-blue-500 h-1.5 rounded-full" style={{ width: `${totalSeats ? (morningCount/totalSeats)*100 : 0}%` }}></div></div>
-            </div>
-            <div>
-              <div className="flex justify-between text-sm mb-2">
-                <div className="flex items-center"><span className="w-2 h-2 rounded-full bg-yellow-500 mr-2"></span><span className="text-slate-300">Day Shift</span></div>
-                <span className="text-slate-400">{dayCount} / {totalSeats || 120}</span>
-              </div>
-              <div className="w-full bg-slate-700 rounded-full h-1.5"><div className="bg-yellow-500 h-1.5 rounded-full" style={{ width: `${totalSeats ? (dayCount/totalSeats)*100 : 0}%` }}></div></div>
-            </div>
-            <div>
-              <div className="flex justify-between text-sm mb-2">
-                <div className="flex items-center"><span className="w-2 h-2 rounded-full bg-red-500 mr-2"></span><span className="text-slate-300">Full Day</span></div>
-                <span className="text-slate-400">{fullCount} / {totalSeats || 120}</span>
-              </div>
-              <div className="w-full bg-slate-700 rounded-full h-1.5"><div className="bg-red-500 h-1.5 rounded-full" style={{ width: `${totalSeats ? (fullCount/totalSeats)*100 : 0}%` }}></div></div>
-            </div>
-          </div>
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {/* Recent Members */}
-        <div className="bg-slate-800/40 backdrop-blur-sm p-6 rounded-2xl border border-slate-700/50 lg:col-span-5 overflow-x-auto">
+        <div className="bg-slate-800/40 backdrop-blur-sm p-6 rounded-2xl border border-slate-700/50 overflow-x-auto">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-lg font-semibold text-white">Recent Members</h3>
-            <button className="text-xs text-teal-400 hover:text-teal-300">View All</button>
+            <button onClick={() => navigate('/students')} className="text-xs text-teal-400 hover:text-teal-300">View All</button>
           </div>
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="text-xs text-slate-500 border-b border-slate-700/50 pb-2">
@@ -343,10 +341,10 @@ const Dashboard = () => {
         </div>
 
         {/* Payment Overview Chart */}
-        <div className="bg-slate-800/40 backdrop-blur-sm p-6 rounded-2xl border border-slate-700/50 lg:col-span-4 flex flex-col">
+        <div className="bg-slate-800/40 backdrop-blur-sm p-6 rounded-2xl border border-slate-700/50 flex flex-col">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-lg font-semibold text-white">Payment Overview</h3>
-            <button className="text-xs text-teal-400 hover:text-teal-300">View All</button>
+            <button onClick={() => navigate('/payments')} className="text-xs text-teal-400 hover:text-teal-300">View All</button>
           </div>
           
           <div className="grid grid-cols-2 gap-4 mb-6">
@@ -374,6 +372,40 @@ const Dashboard = () => {
         </div>
 
       </div>
+
+      {/* Expiring Soon Modal */}
+      {showExpiringModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4">
+          <div className="bg-slate-800 border border-slate-700/50 rounded-2xl w-full max-w-lg shadow-2xl shadow-black/50 overflow-hidden">
+            <div className="flex justify-between items-center p-6 border-b border-slate-700/50">
+              <h3 className="text-xl font-bold text-white flex items-center"><AlertTriangle className="w-5 h-5 text-orange-500 mr-2" /> Expiring Soon</h3>
+              <button onClick={() => setShowExpiringModal(false)} className="text-slate-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 max-h-[60vh] overflow-y-auto">
+              {expiringStudents.length === 0 ? (
+                <p className="text-slate-400 text-center py-4">No students expiring within the next 3 days.</p>
+              ) : (
+                <div className="space-y-4">
+                  {expiringStudents.map(student => (
+                    <div key={student._id} className="flex justify-between items-center bg-slate-900/50 p-4 rounded-xl border border-slate-700/30">
+                      <div>
+                        <p className="font-medium text-white">{student.fullName}</p>
+                        <p className="text-xs text-slate-400">Seat: {student.seatNumber} | {student.mobileNumber}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold text-orange-400">{student.daysLeft} days left</p>
+                        <p className="text-xs text-slate-500">{format(student.expiryDate, 'MMM dd, yyyy')}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
