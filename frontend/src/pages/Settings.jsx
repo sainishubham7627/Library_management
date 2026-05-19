@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Save } from 'lucide-react';
+import { Save, AlertTriangle, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Settings = () => {
   const [fees, setFees] = useState({
@@ -12,6 +13,11 @@ const Settings = () => {
     fullAC: 750
   });
   const [loading, setLoading] = useState(true);
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [password, setPassword] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchFees = async () => {
@@ -47,6 +53,25 @@ const Settings = () => {
 
   const handleChange = (e) => {
     setFees({ ...fees, [e.target.name]: parseInt(e.target.value) || 0 });
+  };
+
+  const handleDeleteAccount = async (e) => {
+    e.preventDefault();
+    setDeleteError('');
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/auth/account`, {
+        headers: { Authorization: `Bearer ${token}` },
+        data: { password }
+      });
+      alert('Account and all associated data deleted successfully.');
+      localStorage.removeItem('token');
+      navigate('/login');
+      // trigger page reload to clear memory state
+      window.location.reload();
+    } catch (err) {
+      setDeleteError(err.response?.data?.message || 'Failed to delete account');
+    }
   };
 
   if (loading) return <div className="text-center py-10 dark:text-white">Loading settings...</div>;
@@ -100,6 +125,68 @@ const Settings = () => {
           </div>
         </form>
       </div>
+
+      {/* Danger Zone */}
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-red-200 dark:border-red-900/30 max-w-3xl mt-8">
+        <h3 className="text-xl font-bold text-red-600 dark:text-red-500 mb-2 flex items-center">
+          <AlertTriangle className="w-5 h-5 mr-2" />
+          Danger Zone
+        </h3>
+        <p className="text-gray-600 dark:text-gray-400 mb-6">
+          Permanently delete your administrator account. This action will immediately and permanently erase all your data, including all configured seats, student records, and fee history. This action cannot be undone.
+        </p>
+        <button 
+          onClick={() => setShowDeleteModal(true)}
+          className="px-6 py-2 bg-red-100 text-red-600 hover:bg-red-600 hover:text-white dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-600 dark:hover:text-white rounded-lg transition-colors font-medium"
+        >
+          Delete Account & All Data
+        </button>
+      </div>
+
+      {/* Delete Account Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md overflow-hidden shadow-xl border border-red-100 dark:border-red-900/50">
+            <div className="flex justify-between items-center p-6 border-b dark:border-gray-700">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+                <AlertTriangle className="w-5 h-5 text-red-500 mr-2" />
+                Confirm Account Deletion
+              </h3>
+              <button onClick={() => {setShowDeleteModal(false); setPassword(''); setDeleteError('');}} className="text-gray-400 hover:text-gray-500">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <form onSubmit={handleDeleteAccount} className="p-6 space-y-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Are you absolutely sure? This will delete your account, <strong>ALL</strong> student records, and <strong>ALL</strong> seat data associated with your library. 
+              </p>
+              <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-lg border border-red-100 dark:border-red-900/30">
+                <p className="text-xs text-red-800 dark:text-red-300 font-medium">To verify, please enter your admin password below:</p>
+              </div>
+              
+              <div>
+                <input 
+                  required 
+                  type="password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Admin Password" 
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:bg-gray-700 dark:text-white outline-none" 
+                />
+              </div>
+
+              {deleteError && (
+                <div className="text-sm text-red-500 font-medium">{deleteError}</div>
+              )}
+
+              <div className="flex justify-end space-x-3 pt-4 mt-2">
+                <button type="button" onClick={() => {setShowDeleteModal(false); setPassword(''); setDeleteError('');}} className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600">Cancel</button>
+                <button type="submit" disabled={!password} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed">Permanently Delete</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
