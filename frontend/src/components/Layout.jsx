@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { LayoutDashboard, Users, Grid, CreditCard, LogOut, Menu, X, Moon, Sun, Bell, Search, BarChart3, Settings } from 'lucide-react';
 
 const Layout = ({ setAuth }) => {
@@ -14,6 +15,35 @@ const Layout = ({ setAuth }) => {
       setSearchTerm('');
     }
   };
+
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/students/dashboard`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const notes = [];
+        if (res.data.pendingPayments > 0) {
+          notes.push({ id: 1, text: `You have ${res.data.pendingPayments} pending payments to collect.`, type: 'alert' });
+        }
+        if (res.data.availableSeats < 10) {
+          notes.push({ id: 2, text: `Only ${res.data.availableSeats} seats left available!`, type: 'warning' });
+        }
+        if (notes.length === 0) {
+          notes.push({ id: 3, text: 'All caught up! No new alerts.', type: 'info' });
+        }
+        setNotifications(notes);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchNotifications();
+  }, []);
 
   useEffect(() => {
     if (darkMode) {
@@ -120,10 +150,27 @@ const Layout = ({ setAuth }) => {
               >
                 {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </button>
-              <button className="relative p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-teal-500 rounded-full border-2 border-white dark:border-slate-900"></span>
-              </button>
+              <div className="relative">
+                <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                  <Bell className="w-5 h-5" />
+                  {notifications.some(n => n.type !== 'info') && (
+                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-teal-500 rounded-full border-2 border-white dark:border-slate-900"></span>
+                  )}
+                </button>
+                {showNotifications && (
+                  <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-slate-800 rounded-2xl shadow-xl shadow-black/10 border border-slate-200 dark:border-slate-700/50 py-3 z-50">
+                    <div className="px-4 pb-2 mb-2 border-b border-slate-100 dark:border-slate-700/50 flex justify-between items-center">
+                      <h3 className="font-semibold text-slate-900 dark:text-white">Notifications</h3>
+                      <button onClick={() => setShowNotifications(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><X className="w-4 h-4" /></button>
+                    </div>
+                    {notifications.map(n => (
+                      <div key={n.id} className="px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer">
+                        <p className="text-sm text-slate-600 dark:text-slate-300">{n.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
               <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
               <div className="flex items-center space-x-3 cursor-pointer">
                 <img src="https://ui-avatars.com/api/?name=Admin+User&background=0D8ABC&color=fff" alt="Admin" className="w-9 h-9 rounded-full ring-2 ring-white dark:ring-slate-800 shadow-sm" />
