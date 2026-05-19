@@ -1,6 +1,7 @@
 const Admin = require('../models/Admin');
 const Student = require('../models/Student');
 const Seat = require('../models/Seat');
+const FeeStructure = require('../models/FeeStructure');
 const jwt = require('jsonwebtoken');
 
 exports.register = async (req, res) => {
@@ -48,6 +49,10 @@ exports.deleteAccount = async (req, res) => {
             return res.status(404).json({ message: 'Admin not found' });
         }
 
+        if (admin.username === 'demo_admin') {
+            return res.status(403).json({ message: 'Cannot delete the shared demo account' });
+        }
+
         // Verify password
         const isMatch = await admin.comparePassword(password);
         if (!isMatch) {
@@ -62,6 +67,53 @@ exports.deleteAccount = async (req, res) => {
         await Admin.findByIdAndDelete(adminId);
 
         res.json({ message: 'Account and all associated data deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+exports.startDemo = async (req, res) => {
+    try {
+        let admin = await Admin.findOne({ username: 'demo_admin' });
+        
+        if (!admin) {
+            admin = new Admin({ name: 'Demo User', email: 'demo@example.com', username: 'demo_admin', password: 'demo_password123' });
+            await admin.save();
+            
+            const fees = new FeeStructure({
+                adminId: admin._id,
+                morningNormal: 450, morningAC: 500,
+                dayNormal: 450, dayAC: 500,
+                fullNormal: 700, fullAC: 750
+            });
+            await fees.save();
+
+            for (let i = 1; i <= 5; i++) {
+                await new Seat({ adminId: admin._id, seatNumber: `N${i}`, roomType: 'Normal' }).save();
+            }
+
+            const seat1 = await Seat.findOne({ adminId: admin._id, seatNumber: 'N1' });
+            const student = new Student({
+                adminId: admin._id,
+                fullName: 'Rahul Sharma',
+                mobileNumber: '9876543210',
+                studentId: 'S01',
+                address: 'New Delhi',
+                shift: 'Full Shift',
+                roomType: 'Normal',
+                seatNumber: 'N1',
+                joiningDate: new Date(),
+                fee: { total: 700, paid: 700, remaining: 0, status: 'Paid', paymentHistory: [{ amount: 700, method: 'UPI' }] }
+            });
+            await student.save();
+            if(seat1) {
+                seat1.occupants.full = student._id;
+                await seat1.save();
+            }
+        }
+
+        const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET || 'secretkey', { expiresIn: '1d' });
+        res.json({ token, admin: { username: admin.username, name: admin.name } });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
     }

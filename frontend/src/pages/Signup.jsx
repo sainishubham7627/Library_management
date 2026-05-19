@@ -24,6 +24,16 @@ const Signup = ({ setAuth }) => {
     }
   };
 
+  const handleDemo = async () => {
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/demo`);
+      localStorage.setItem('token', response.data.token);
+      setAuth(true);
+    } catch (err) {
+      setError('Failed to start demo');
+    }
+  };
+
   return (
     <div className="min-h-screen flex bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
       
@@ -137,6 +147,23 @@ const Signup = ({ setAuth }) => {
                 Sign in here
               </Link>
             </p>
+
+            <div className="relative mt-8">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-200 dark:border-slate-700"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white/60 dark:bg-slate-800/60 text-slate-500">Or just exploring?</span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleDemo}
+              className="mt-6 w-full flex justify-center py-3.5 px-4 border-2 border-slate-200 dark:border-slate-700 text-sm font-semibold rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-all duration-200"
+            >
+              Start Live Demo
+            </button>
           </form>
         </div>
       </div>
