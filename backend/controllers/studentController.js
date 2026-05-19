@@ -14,7 +14,7 @@ const getDynamicFee = async (shift, roomType, adminId) => {
 
 exports.addStudent = async (req, res) => {
     try {
-        const { fullName, mobileNumber, studentId, address, shift, roomType, seatNumber, amountPaid, paymentMethod, remark, isPayLater } = req.body;
+        const { fullName, mobileNumber, studentId, address, shift, roomType, seatNumber, amountPaid, paymentMethod, remark, isPayLater, joiningDate } = req.body;
 
         // Check if student exists
         const existingStudent = await Student.findOne({ adminId: req.admin.id, studentId });
@@ -58,7 +58,7 @@ exports.addStudent = async (req, res) => {
         const student = new Student({
             adminId: req.admin.id,
             fullName, mobileNumber, studentId, address, shift, roomType, seatNumber,
-            remark,
+            remark, joiningDate: joiningDate || Date.now(),
             fee: { total: totalFee, paid, remaining, status, paymentHistory }
         });
 

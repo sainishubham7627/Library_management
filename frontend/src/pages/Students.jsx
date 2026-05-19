@@ -20,7 +20,7 @@ const Students = () => {
 
   const initialFormState = {
     fullName: '', mobileNumber: '', studentId: '', address: '',
-    shift: 'Morning', roomType: 'Normal', seatNumber: '',
+    shift: 'Morning', roomType: 'Normal', seatNumber: '', joiningDate: format(new Date(), 'yyyy-MM-dd'),
     amountPaid: '', paymentMethod: 'Cash', remark: '', isPayLater: false
   };
 
@@ -392,7 +392,11 @@ const Students = () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Address</label>
                   <textarea required name="address" value={formData.address} onChange={(e) => handleInputChange(e)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" rows="2"></textarea>
                 </div>
-                <div className="md:col-span-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Joining Date</label>
+                  <input required type="date" name="joiningDate" value={formData.joiningDate} onChange={(e) => handleInputChange(e)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Remark (Optional)</label>
                   <input type="text" name="remark" placeholder="Any specific note..." value={formData.remark} onChange={(e) => handleInputChange(e)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
                 </div>
@@ -466,7 +470,11 @@ const Students = () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Address</label>
                   <textarea required name="address" value={editData.address} onChange={(e) => handleInputChange(e, true)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" rows="2"></textarea>
                 </div>
-                <div className="md:col-span-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Joining Date</label>
+                  <input required type="date" name="joiningDate" value={editData.joiningDate ? editData.joiningDate.split('T')[0] : ''} onChange={(e) => handleInputChange(e, true)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Remark</label>
                   <input type="text" name="remark" value={editData.remark || ''} onChange={(e) => handleInputChange(e, true)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
                 </div>
