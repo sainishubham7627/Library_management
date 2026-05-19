@@ -86,6 +86,7 @@ exports.getStudents = async (req, res) => {
             query.$or = [
                 { fullName: { $regex: search, $options: 'i' } },
                 { mobileNumber: { $regex: search, $options: 'i' } },
+                { studentId: { $regex: search, $options: 'i' } },
                 { seatNumber: { $regex: search, $options: 'i' } }
             ];
         }

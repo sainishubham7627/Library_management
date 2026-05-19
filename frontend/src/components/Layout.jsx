@@ -5,7 +5,6 @@ import { LayoutDashboard, Users, Grid, CreditCard, LogOut, Menu, X, Moon, Sun, B
 
 const Layout = ({ setAuth }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -45,14 +44,6 @@ const Layout = ({ setAuth }) => {
     fetchNotifications();
   }, []);
 
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
-
   const handleLogout = () => {
     localStorage.removeItem('token');
     setAuth(false);
@@ -68,7 +59,7 @@ const Layout = ({ setAuth }) => {
   ];
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'dark' : ''}`}>
+    <div className="min-h-screen">
       <div className="flex h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
         
         {/* Mobile sidebar overlay */}
@@ -144,12 +135,7 @@ const Layout = ({ setAuth }) => {
               </div>
             </div>
             <div className="flex items-center space-x-3 sm:space-x-5">
-              <button
-                onClick={() => setDarkMode(!darkMode)}
-                className="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
-              >
-                {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              </button>
+
               <div className="relative">
                 <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
                   <Bell className="w-5 h-5" />

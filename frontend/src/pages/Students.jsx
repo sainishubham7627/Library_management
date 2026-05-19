@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useLocation } from 'react-router-dom';
 import { Search, Plus, Edit, Trash2, X, Eye } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 
 const Students = () => {
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const initialSearch = queryParams.get('search') || '';
+
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(initialSearch);
   const [shiftFilter, setShiftFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [roomFilter, setRoomFilter] = useState('');
@@ -76,6 +81,13 @@ const Students = () => {
     fetchStudents();
     fetchFees();
   }, [search, shiftFilter, statusFilter, roomFilter]);
+
+  useEffect(() => {
+    const q = new URLSearchParams(location.search).get('search');
+    if (q !== null) {
+      setSearch(q);
+    }
+  }, [location.search]);
 
   const getCalculatedTotal = () => {
     if (!feeStructure) return 0;
