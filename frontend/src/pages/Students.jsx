@@ -406,9 +406,9 @@ const Students = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Shift</label>
                   <select name="shift" value={formData.shift} onChange={(e) => handleInputChange(e)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                    <option value="Morning">Morning (6AM-2PM)</option>
-                    <option value="Day">Day (2PM-10PM)</option>
-                    <option value="Full Shift">Full Shift (6AM-10PM)</option>
+                    <option value="Morning">Morning</option>
+                    <option value="Day">Day</option>
+                    <option value="Full Shift">Full Shift</option>
                   </select>
                 </div>
                 <div>
