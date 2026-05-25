@@ -51,18 +51,6 @@ const Seats = () => {
     fetchSeats();
   }, []);
 
-  const initSeats = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/seats/init`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      fetchSeats();
-    } catch (err) {
-      alert(err.response?.data?.message || 'Error initializing seats');
-    }
-  };
-
   if (loading) return <div className="text-center py-10 dark:text-white">Loading seats...</div>;
 
   const normalSeats = seats.filter(s => s.roomType === 'Normal').sort((a, b) => parseInt(a.seatNumber.slice(1)) - parseInt(b.seatNumber.slice(1)));
@@ -75,11 +63,6 @@ const Seats = () => {
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Seat Layout</h2>
           <p className="text-gray-500 dark:text-gray-400">Visual representation of seat availability.</p>
         </div>
-        {seats.length === 0 && (
-          <button onClick={initSeats} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
-            Initialize Seats
-          </button>
-        )}
       </div>
 
       <div className="flex gap-4 mb-6">
@@ -92,7 +75,7 @@ const Seats = () => {
       {seats.length > 0 && (
         <>
           <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-            <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Normal Hall (H1 - H49)</h3>
+            <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Normal Hall ({normalSeats.length} Seats)</h3>
             <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 lg:grid-cols-10 gap-4">
               {normalSeats.map(seat => (
                 <SeatCard key={seat._id} seat={seat} onClick={setSelectedSeat} />
@@ -101,7 +84,7 @@ const Seats = () => {
           </div>
 
           <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-            <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">AC Room (AC01 - AC25)</h3>
+            <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">AC Room ({acSeats.length} Seats)</h3>
             <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 lg:grid-cols-10 gap-4">
               {acSeats.map(seat => (
                 <SeatCard key={seat._id} seat={seat} onClick={setSelectedSeat} />

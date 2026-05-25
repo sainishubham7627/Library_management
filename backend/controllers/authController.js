@@ -13,6 +13,26 @@ exports.register = async (req, res) => {
         }
         const admin = new Admin({ name, email, username, password });
         await admin.save();
+        
+        // Auto-initialize Default Fee Structure
+        const defaultFees = new FeeStructure({
+            adminId: admin._id,
+            morningNormal: 450, morningAC: 500,
+            dayNormal: 450, dayAC: 500,
+            fullNormal: 700, fullAC: 750
+        });
+        await defaultFees.save();
+
+        // Auto-initialize Default Seats (49 Normal, 25 AC)
+        const seatsToCreate = [];
+        for (let i = 1; i <= 49; i++) {
+            seatsToCreate.push({ adminId: admin._id, seatNumber: `H${i}`, roomType: 'Normal' });
+        }
+        for (let i = 1; i <= 25; i++) {
+            seatsToCreate.push({ adminId: admin._id, seatNumber: `AC${i < 10 ? '0' + i : i}`, roomType: 'AC' });
+        }
+        await Seat.insertMany(seatsToCreate);
+
         const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET || 'secretkey', { expiresIn: '1d' });
         res.status(201).json({ message: 'Admin created successfully', token, admin: { username: admin.username, name: admin.name } });
     } catch (error) {
