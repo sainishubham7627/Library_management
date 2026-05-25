@@ -66,40 +66,53 @@ exports.updateSeatConfig = async (req, res) => {
         const existingNormal = existingSeats.filter(s => s.roomType === 'Normal');
         const existingAC = existingSeats.filter(s => s.roomType === 'AC');
 
-        // Check if any seats to be deleted are occupied
-        const normalDiff = normalSeatsCount - existingNormal.length;
-        if (normalDiff < 0) {
-            const seatsToRemove = existingNormal.slice(normalSeatsCount);
-            for (const s of seatsToRemove) {
-                if (s.occupants.full || s.occupants.morning || s.occupants.day) {
-                    return res.status(400).json({ message: `Cannot decrease seats. Seat ${s.seatNumber} is currently occupied. Unassign students first.` });
-                }
-            }
-            await Seat.deleteMany({ _id: { $in: seatsToRemove.map(s => s._id) } });
-        }
-
-        const acDiff = acSeatsCount - existingAC.length;
-        if (acDiff < 0) {
-            const seatsToRemove = existingAC.slice(acSeatsCount);
-            for (const s of seatsToRemove) {
-                if (s.occupants.full || s.occupants.morning || s.occupants.day) {
-                    return res.status(400).json({ message: `Cannot decrease AC seats. Seat ${s.seatNumber} is currently occupied. Unassign students first.` });
-                }
-            }
-            await Seat.deleteMany({ _id: { $in: seatsToRemove.map(s => s._id) } });
-        }
-
-        // Add new seats
         const seatsToCreate = [];
-        if (normalDiff > 0) {
-            for (let i = existingNormal.length + 1; i <= normalSeatsCount; i++) {
+        const seatsToRemoveIds = [];
+
+        // Helper to extract number
+        const getNormalNum = (seatNum) => parseInt(seatNum.replace('H', '')) || 0;
+        const getACNum = (seatNum) => parseInt(seatNum.replace('AC', '')) || 0;
+
+        // Process Normal Seats
+        const normalNumbers = new Set(existingNormal.map(s => getNormalNum(s.seatNumber)));
+        
+        // Add missing seats up to normalSeatsCount
+        for (let i = 1; i <= normalSeatsCount; i++) {
+            if (!normalNumbers.has(i)) {
                 seatsToCreate.push({ adminId: req.admin.id, seatNumber: `H${i}`, roomType: 'Normal' });
             }
         }
-        if (acDiff > 0) {
-            for (let i = existingAC.length + 1; i <= acSeatsCount; i++) {
+
+        // Identify seats to remove (number > normalSeatsCount)
+        for (const s of existingNormal) {
+            if (getNormalNum(s.seatNumber) > normalSeatsCount) {
+                if (s.occupants.full || s.occupants.morning || s.occupants.day) {
+                    return res.status(400).json({ message: `Cannot decrease seats. Seat ${s.seatNumber} is currently occupied. Unassign students first.` });
+                }
+                seatsToRemoveIds.push(s._id);
+            }
+        }
+
+        // Process AC Seats
+        const acNumbers = new Set(existingAC.map(s => getACNum(s.seatNumber)));
+        
+        for (let i = 1; i <= acSeatsCount; i++) {
+            if (!acNumbers.has(i)) {
                 seatsToCreate.push({ adminId: req.admin.id, seatNumber: `AC${i < 10 ? '0' + i : i}`, roomType: 'AC' });
             }
+        }
+
+        for (const s of existingAC) {
+            if (getACNum(s.seatNumber) > acSeatsCount) {
+                if (s.occupants.full || s.occupants.morning || s.occupants.day) {
+                    return res.status(400).json({ message: `Cannot decrease AC seats. Seat ${s.seatNumber} is currently occupied. Unassign students first.` });
+                }
+                seatsToRemoveIds.push(s._id);
+            }
+        }
+
+        if (seatsToRemoveIds.length > 0) {
+            await Seat.deleteMany({ _id: { $in: seatsToRemoveIds } });
         }
 
         if (seatsToCreate.length > 0) {
