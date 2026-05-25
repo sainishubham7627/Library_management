@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Search, IndianRupee, History } from 'lucide-react';
+import { Search, IndianRupee, MessageSquare, History } from 'lucide-react';
 import { format } from 'date-fns';
 
 const Payments = () => {
@@ -53,6 +53,15 @@ const Payments = () => {
     } catch (err) {
       alert(err.response?.data?.message || 'Error processing payment');
     }
+  };
+
+  const handleWhatsAppReminder = (student) => {
+    const text = `Hi ${student.fullName},\n\nThis is a gentle reminder that ₹${student.fee.remaining} is pending for your library seat (${student.seatNumber}). Please make the payment at your earliest convenience.\n\nThank you!`;
+    const encodedText = encodeURIComponent(text);
+    // Remove any non-numeric characters from the mobile number, just in case
+    const cleanNumber = student.mobileNumber.replace(/\D/g, '');
+    const whatsappUrl = `https://wa.me/91${cleanNumber}?text=${encodedText}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   const openPaymentModal = (student) => {
@@ -140,15 +149,26 @@ const Payments = () => {
                         ) : 'No payments'}
                       </td>
                       <td className="px-6 py-4">
-                        {student.fee.remaining > 0 && (
-                          <button
-                            onClick={() => openPaymentModal(student)}
-                            className="flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
-                          >
-                            <IndianRupee className="w-4 h-4 mr-1" />
-                            Add Payment
-                          </button>
-                        )}
+                        <div className="flex flex-col space-y-2">
+                          {student.fee.remaining > 0 && (
+                            <>
+                              <button
+                                onClick={() => openPaymentModal(student)}
+                                className="flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 w-max"
+                              >
+                                <IndianRupee className="w-4 h-4 mr-1" />
+                                Add Payment
+                              </button>
+                              <button
+                                onClick={() => handleWhatsAppReminder(student)}
+                                className="flex items-center text-sm font-medium text-emerald-600 hover:text-emerald-900 dark:text-emerald-400 dark:hover:text-emerald-300 w-max"
+                              >
+                                <MessageSquare className="w-4 h-4 mr-1" />
+                                Send Reminder
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   )

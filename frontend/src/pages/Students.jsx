@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useLocation } from 'react-router-dom';
-import { Search, Plus, Edit, Trash2, X, Eye } from 'lucide-react';
+import { useLocation, useOutletContext } from 'react-router-dom';
+import { Search, Plus, Edit, Trash2, X, Eye, MessageSquare } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 
 const Students = () => {
@@ -312,7 +312,21 @@ const Students = () => {
                       <div className="font-medium text-gray-900 dark:text-white">{student.fullName}</div>
                       <div className="text-xs text-gray-500">ID: {student.studentId}</div>
                     </td>
-                    <td className="px-6 py-4">{student.mobileNumber}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center space-x-2">
+                        <span>{student.mobileNumber}</span>
+                        <a 
+                          href={`https://wa.me/91${student.mobileNumber.replace(/\D/g, '')}`} 
+                          target="_blank" 
+                          rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-emerald-500 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
+                          title="Message on WhatsApp"
+                        >
+                          <MessageSquare className="w-4 h-4" />
+                        </a>
+                      </div>
+                    </td>
                     <td className="px-6 py-4">
                       <div className="font-medium text-gray-900 dark:text-white">{student.seatNumber} ({student.roomType})</div>
                       <div className="text-xs text-gray-500">{student.shift}</div>
