@@ -60,7 +60,7 @@ const Payments = () => {
     const encodedText = encodeURIComponent(text);
     // Remove any non-numeric characters from the mobile number, just in case
     const cleanNumber = student.mobileNumber.replace(/\D/g, '');
-    const whatsappUrl = `https://wa.me/91${cleanNumber}?text=${encodedText}`;
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=91${cleanNumber}&text=${encodedText}`;
     window.open(whatsappUrl, '_blank');
   };
 
