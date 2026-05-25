@@ -150,6 +150,9 @@ const Students = () => {
     if (!/^S\d+$/.test(formData.studentId)) {
       return alert("Student ID must start with 'S' followed by numbers (e.g., S01).");
     }
+    if (currentPaid > calculatedTotal) {
+      return alert("Amount paid cannot exceed the expected total fee.");
+    }
     try {
       const token = localStorage.getItem('token');
       await axios.post(`${import.meta.env.VITE_API_URL}/api/students`, formData, {
@@ -453,7 +456,10 @@ const Students = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount Paid (₹)</label>
-                      <input type="number" min="0" required name="amountPaid" value={formData.amountPaid} onChange={(e) => handleInputChange(e)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+                      <input type="number" min="0" required name="amountPaid" value={formData.amountPaid} onChange={(e) => handleInputChange(e)} className={`w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white ${currentPaid > calculatedTotal ? 'border-red-500 dark:border-red-500 focus:ring-red-500 focus:border-red-500 outline-none' : 'dark:border-gray-600'}`} />
+                      {currentPaid > calculatedTotal && (
+                        <p className="text-red-500 text-xs mt-1 font-medium">Amount paid cannot exceed ₹{calculatedTotal}</p>
+                      )}
                       <div className="mt-2 text-sm">
                         <span className="text-gray-500 dark:text-gray-400">Remaining (Pay Later): </span>
                         <span className={`font-semibold ${currentRemaining > 0 ? 'text-red-500' : 'text-green-500'}`}>
@@ -475,7 +481,7 @@ const Students = () => {
               </div>
               <div className="flex justify-end space-x-3 pt-4 border-t dark:border-gray-700 mt-4">
                 <button type="button" onClick={() => setShowAddModal(false)} className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Save Student</button>
+                <button type="submit" disabled={currentPaid > calculatedTotal} className={`px-4 py-2 text-white rounded-lg transition-colors ${currentPaid > calculatedTotal ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}>Save Student</button>
               </div>
             </form>
           </div>
