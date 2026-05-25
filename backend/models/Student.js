@@ -14,6 +14,7 @@ const studentSchema = new mongoose.Schema({
     remark: { type: String },
     fee: {
         total: { type: Number, required: true, min: [0, 'Total fee cannot be negative'] },
+        discount: { type: Number, default: 0, min: [0, 'Discount cannot be negative'] },
         paid: { type: Number, default: 0, min: [0, 'Paid amount cannot be negative'] },
         remaining: { type: Number, required: true, min: [0, 'Remaining fee cannot be negative'] },
         status: { type: String, enum: ['Paid', 'Pending', 'Partial Paid'], default: 'Pending' },

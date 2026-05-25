@@ -14,7 +14,7 @@ const getDynamicFee = async (shift, roomType, adminId) => {
 
 exports.addStudent = async (req, res) => {
     try {
-        const { fullName, mobileNumber, studentId, address, shift, roomType, seatNumber, amountPaid, paymentMethod, remark, isPayLater, joiningDate } = req.body;
+        const { fullName, mobileNumber, studentId, address, shift, roomType, seatNumber, amountPaid, discount, paymentMethod, remark, isPayLater, joiningDate } = req.body;
 
         // Check if student exists
         const existingStudent = await Student.findOne({ adminId: req.admin.id, studentId });
@@ -43,7 +43,9 @@ exports.addStudent = async (req, res) => {
         }
 
         // Calculate Fees
-        const totalFee = await getDynamicFee(shift, roomType, req.admin.id);
+        const baseFee = await getDynamicFee(shift, roomType, req.admin.id);
+        const discountAmount = discount ? parseFloat(discount) : 0;
+        const totalFee = Math.max(0, baseFee - discountAmount);
         const paid = isPayLater ? 0 : (amountPaid ? parseFloat(amountPaid) : 0);
         const remaining = totalFee - paid;
         let status = 'Pending';
@@ -58,8 +60,12 @@ exports.addStudent = async (req, res) => {
         const student = new Student({
             adminId: req.admin.id,
             fullName, mobileNumber, studentId, address, shift, roomType, seatNumber,
-            remark, joiningDate: joiningDate || Date.now(),
-            fee: { total: totalFee, paid, remaining, status, paymentHistory }
+            joiningDate: joiningDate || Date.now(),
+            remark,
+            fee: {
+                total: totalFee,
+                discount: discountAmount,
+                paid, remaining, status, paymentHistory }
         });
 
         await student.save();

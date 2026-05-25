@@ -26,7 +26,7 @@ const Students = () => {
   const initialFormState = {
     fullName: '', mobileNumber: '', studentId: '', address: '',
     shift: 'Morning', roomType: 'Normal', seatNumber: '', joiningDate: format(new Date(), 'yyyy-MM-dd'),
-    amountPaid: '', paymentMethod: 'Cash', remark: '', isPayLater: false
+    amountPaid: '', discount: '', paymentMethod: 'Cash', remark: '', isPayLater: false
   };
 
   const [formData, setFormData] = useState(initialFormState);
@@ -90,7 +90,7 @@ const Students = () => {
     }
   }, [location.search]);
 
-  const getCalculatedTotal = () => {
+  const getBaseFee = () => {
     if (!feeStructure) return 0;
     const { shift, roomType } = formData;
     if (shift === 'Morning') return roomType === 'AC' ? feeStructure.morningAC : feeStructure.morningNormal;
@@ -98,7 +98,9 @@ const Students = () => {
     return roomType === 'AC' ? feeStructure.fullAC : feeStructure.fullNormal;
   };
   
-  const calculatedTotal = getCalculatedTotal();
+  const baseFee = getBaseFee();
+  const currentDiscount = parseFloat(formData.discount) || 0;
+  const calculatedTotal = Math.max(0, baseFee - currentDiscount);
   const currentPaid = parseFloat(formData.amountPaid) || 0;
   const currentRemaining = Math.max(0, calculatedTotal - currentPaid);
 
@@ -431,6 +433,17 @@ const Students = () => {
                 {/* Payment Section */}
                 <div className="md:col-span-2 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-700 space-y-4">
                   <h4 className="font-semibold text-gray-900 dark:text-white">Fee Details</h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-600 dark:text-gray-400">Standard Base Fee</label>
+                      <div className="text-lg font-medium text-gray-700 dark:text-gray-300">₹{baseFee}</div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Discount (₹)</label>
+                      <input type="number" min="0" name="discount" placeholder="0" value={formData.discount} onChange={(e) => handleInputChange(e)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+                    </div>
+                  </div>
                   
                   <div className="bg-indigo-50 dark:bg-indigo-900/30 p-3 rounded-lg flex justify-between items-center text-indigo-900 dark:text-indigo-200">
                     <span className="font-medium">Expected Total Fee:</span>
