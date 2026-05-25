@@ -1,6 +1,6 @@
 const Student = require('../models/Student');
 const Seat = require('../models/Seat');
-
+const Admin = require('../models/Admin');
 const FeeStructure = require('../models/FeeStructure');
 
 const getDynamicFee = async (shift, roomType, adminId) => {
@@ -212,11 +212,14 @@ exports.getDashboardStats = async (req, res) => {
         // Pending payments
         const pendingPaymentsCount = await Student.countDocuments({ adminId: req.admin.id, 'fee.status': { $in: ['Pending', 'Partial Paid'] } });
 
+        const admin = await Admin.findById(req.admin.id);
+
         res.json({
             totalStudents: totalStudentsCount,
             occupiedSeats,
             availableSeats,
-            pendingPayments: pendingPaymentsCount
+            pendingPayments: pendingPaymentsCount,
+            adminUsername: admin ? admin.username : 'Admin'
         });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });

@@ -17,6 +17,7 @@ const Layout = ({ setAuth }) => {
 
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [adminUsername, setAdminUsername] = useState('Admin');
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -37,6 +38,9 @@ const Layout = ({ setAuth }) => {
           notes.push({ id: 3, text: 'All caught up! No new alerts.', type: 'info' });
         }
         setNotifications(notes);
+        if (res.data.adminUsername) {
+          setAdminUsername(res.data.adminUsername);
+        }
       } catch (err) {
         console.error(err);
       }
@@ -159,9 +163,9 @@ const Layout = ({ setAuth }) => {
               </div>
               <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
               <div className="flex items-center space-x-3 cursor-pointer">
-                <img src="https://ui-avatars.com/api/?name=Admin+User&background=0D8ABC&color=fff" alt="Admin" className="w-9 h-9 rounded-full ring-2 ring-white dark:ring-slate-800 shadow-sm" />
+                <img src={`https://ui-avatars.com/api/?name=${adminUsername}&background=0D8ABC&color=fff`} alt="Admin" className="w-9 h-9 rounded-full ring-2 ring-white dark:ring-slate-800 shadow-sm" />
                 <div className="hidden sm:block text-left">
-                  <div className="text-sm font-semibold text-slate-900 dark:text-white leading-tight">Admin User</div>
+                  <div className="text-sm font-semibold text-slate-900 dark:text-white leading-tight">{adminUsername}</div>
                   <div className="text-xs text-slate-500 dark:text-slate-400">Administrator</div>
                 </div>
               </div>
