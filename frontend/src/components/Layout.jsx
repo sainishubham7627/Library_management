@@ -19,6 +19,32 @@ const Layout = ({ setAuth }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [adminUsername, setAdminUsername] = useState('Admin');
 
+  // Profile Update State
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileData, setProfileData] = useState({ newUsername: '', currentPassword: '', newPassword: '' });
+
+  const handleProfileUpdate = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.put(`${import.meta.env.VITE_API_URL}/api/auth/profile`, 
+        { 
+          username: profileData.newUsername || undefined,
+          currentPassword: profileData.currentPassword || undefined,
+          newPassword: profileData.newPassword || undefined
+        }, 
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setAdminUsername(res.data.admin.username);
+      setShowProfileModal(false);
+      setProfileData({ newUsername: '', currentPassword: '', newPassword: '' });
+      alert('Profile updated successfully!');
+    } catch (err) {
+      alert(err.response?.data?.message || 'Error updating profile');
+    }
+  };
+
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
@@ -162,12 +188,31 @@ const Layout = ({ setAuth }) => {
                 )}
               </div>
               <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
-              <div className="flex items-center space-x-3 cursor-pointer">
-                <img src={`https://ui-avatars.com/api/?name=${adminUsername}&background=0D8ABC&color=fff`} alt="Admin" className="w-9 h-9 rounded-full ring-2 ring-white dark:ring-slate-800 shadow-sm" />
-                <div className="hidden sm:block text-left">
-                  <div className="text-sm font-semibold text-slate-900 dark:text-white leading-tight">{adminUsername}</div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">Administrator</div>
+              <div className="relative">
+                <div onClick={() => setShowProfileMenu(!showProfileMenu)} className="flex items-center space-x-3 cursor-pointer">
+                  <img src={`https://ui-avatars.com/api/?name=${adminUsername}&background=0D8ABC&color=fff`} alt="Admin" className="w-9 h-9 rounded-full ring-2 ring-white dark:ring-slate-800 shadow-sm" />
+                  <div className="hidden sm:block text-left">
+                    <div className="text-sm font-semibold text-slate-900 dark:text-white leading-tight">{adminUsername}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400">Administrator</div>
+                  </div>
                 </div>
+                {showProfileMenu && (
+                  <div className="absolute right-0 mt-3 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700/50 py-1 z-50">
+                    <button 
+                      onClick={() => { setShowProfileMenu(false); setProfileData({ ...profileData, newUsername: adminUsername }); setShowProfileModal(true); }}
+                      className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                    >
+                      Update Profile
+                    </button>
+                    <div className="h-px bg-slate-100 dark:bg-slate-700/50 my-1"></div>
+                    <button 
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2 text-sm text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </header>
@@ -181,6 +226,41 @@ const Layout = ({ setAuth }) => {
         </div>
 
       </div>
+
+      {/* Profile Update Modal */}
+      {showProfileModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-xl">
+            <div className="flex justify-between items-center p-6 border-b dark:border-slate-700">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">Update Profile</h3>
+              <button onClick={() => setShowProfileModal(false)} className="text-slate-400 hover:text-slate-500">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleProfileUpdate} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Username</label>
+                <input type="text" value={profileData.newUsername} onChange={(e) => setProfileData({...profileData, newUsername: e.target.value})} className="w-full px-3 py-2 border rounded-xl dark:bg-slate-700 dark:border-slate-600 dark:text-white" />
+              </div>
+              <div className="p-4 bg-slate-50 dark:bg-slate-700/30 rounded-xl border border-slate-100 dark:border-slate-700 space-y-4">
+                <h4 className="text-sm font-medium text-slate-900 dark:text-white">Change Password (Optional)</h4>
+                <div>
+                  <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">Current Password</label>
+                  <input type="password" value={profileData.currentPassword} onChange={(e) => setProfileData({...profileData, currentPassword: e.target.value})} className="w-full px-3 py-2 border rounded-xl dark:bg-slate-700 dark:border-slate-600 dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">New Password</label>
+                  <input type="password" value={profileData.newPassword} onChange={(e) => setProfileData({...profileData, newPassword: e.target.value})} className="w-full px-3 py-2 border rounded-xl dark:bg-slate-700 dark:border-slate-600 dark:text-white" />
+                </div>
+              </div>
+              <div className="flex justify-end space-x-3 pt-4 border-t dark:border-slate-700">
+                <button type="button" onClick={() => setShowProfileModal(false)} className="px-4 py-2 text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 font-medium">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-teal-600 text-white rounded-xl hover:bg-teal-700 font-medium">Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
