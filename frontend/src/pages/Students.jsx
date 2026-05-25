@@ -316,7 +316,7 @@ const Students = () => {
                       <div className="flex items-center space-x-2">
                         <span>{student.mobileNumber}</span>
                         <a 
-                          href={`https://wa.me/91${student.mobileNumber.replace(/\D/g, '')}`} 
+                          href={`https://api.whatsapp.com/send?phone=91${student.mobileNumber.replace(/\D/g, '')}&text=${encodeURIComponent(`Hi ${student.fullName},`)}`} 
                           target="_blank" 
                           rel="noreferrer"
                           onClick={(e) => e.stopPropagation()}
