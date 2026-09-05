@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Save, AlertTriangle, X, Lock } from 'lucide-react';
+import { Save, AlertTriangle, X, Lock, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Settings = () => {
@@ -19,11 +19,13 @@ const Settings = () => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [pendingAction, setPendingAction] = useState(null); // 'fees' or 'seats'
   const [generalPassword, setGeneralPassword] = useState('');
+  const [showGeneralPassword, setShowGeneralPassword] = useState(false);
   const [generalError, setGeneralError] = useState('');
 
   // Delete account state
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [password, setPassword] = useState('');
+  const [showDeletePassword, setShowDeletePassword] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const navigate = useNavigate();
 
@@ -213,15 +215,22 @@ const Settings = () => {
                 To apply these {pendingAction === 'seats' ? 'seat configuration' : 'fee structure'} changes, please enter your admin password.
               </p>
               
-              <div>
+              <div className="relative">
                 <input 
                   required 
-                  type="password" 
+                  type={showGeneralPassword ? "text" : "password"} 
                   value={generalPassword}
                   onChange={(e) => setGeneralPassword(e.target.value)}
                   placeholder="Admin Password" 
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white outline-none" 
+                  className="w-full pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white outline-none" 
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowGeneralPassword(!showGeneralPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none"
+                >
+                  {showGeneralPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
 
               {generalError && (
@@ -258,15 +267,22 @@ const Settings = () => {
                 <p className="text-xs text-red-800 dark:text-red-300 font-medium">To verify, please enter your admin password below:</p>
               </div>
               
-              <div>
+              <div className="relative">
                 <input 
                   required 
-                  type="password" 
+                  type={showDeletePassword ? "text" : "password"} 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Admin Password" 
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:bg-gray-700 dark:text-white outline-none" 
+                  className="w-full pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:bg-gray-700 dark:text-white outline-none" 
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowDeletePassword(!showDeletePassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none"
+                >
+                  {showDeletePassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
 
               {deleteError && (

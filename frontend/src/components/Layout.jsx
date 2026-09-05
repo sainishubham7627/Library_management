@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { LayoutDashboard, Users, Grid, CreditCard, LogOut, Menu, X, Moon, Sun, Bell, Search, BarChart3, Settings } from 'lucide-react';
+import { LayoutDashboard, Users, Grid, CreditCard, LogOut, Menu, X, Moon, Sun, Bell, Search, BarChart3, Settings, Eye, EyeOff } from 'lucide-react';
 
 const Layout = ({ setAuth }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -23,6 +23,8 @@ const Layout = ({ setAuth }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [profileData, setProfileData] = useState({ newUsername: '', currentPassword: '', newPassword: '' });
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
@@ -246,11 +248,41 @@ const Layout = ({ setAuth }) => {
                 <h4 className="text-sm font-medium text-slate-900 dark:text-white">Change Password (Optional)</h4>
                 <div>
                   <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">Current Password</label>
-                  <input type="password" value={profileData.currentPassword} onChange={(e) => setProfileData({...profileData, currentPassword: e.target.value})} className="w-full px-3 py-2 border rounded-xl dark:bg-slate-700 dark:border-slate-600 dark:text-white" />
+                  <div className="relative">
+                    <input 
+                      type={showCurrentPassword ? "text" : "password"} 
+                      value={profileData.currentPassword} 
+                      onChange={(e) => setProfileData({...profileData, currentPassword: e.target.value})} 
+                      className="w-full pl-3 pr-10 py-2 border rounded-xl dark:bg-slate-700 dark:border-slate-600 dark:text-white" 
+                      placeholder="Enter current password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 focus:outline-none"
+                    >
+                      {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1">New Password</label>
-                  <input type="password" value={profileData.newPassword} onChange={(e) => setProfileData({...profileData, newPassword: e.target.value})} className="w-full px-3 py-2 border rounded-xl dark:bg-slate-700 dark:border-slate-600 dark:text-white" />
+                  <div className="relative">
+                    <input 
+                      type={showNewPassword ? "text" : "password"} 
+                      value={profileData.newPassword} 
+                      onChange={(e) => setProfileData({...profileData, newPassword: e.target.value})} 
+                      className="w-full pl-3 pr-10 py-2 border rounded-xl dark:bg-slate-700 dark:border-slate-600 dark:text-white" 
+                      placeholder="Enter new password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 focus:outline-none"
+                    >
+                      {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
               </div>
               <div className="flex justify-end space-x-3 pt-4 border-t dark:border-slate-700">
