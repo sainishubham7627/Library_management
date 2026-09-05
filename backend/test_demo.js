@@ -1,11 +1,12 @@
 const mongoose = require('mongoose');
+require('dotenv').config();
 const Admin = require('./models/Admin');
 const Student = require('./models/Student');
 const Seat = require('./models/Seat');
 const FeeStructure = require('./models/FeeStructure');
 
 async function testGeneration() {
-    await mongoose.connect('mongodb+srv://sainishubham7627_db_user:rGj19oYAJj1yzQ2W@library.doiaeky.mongodb.net/library-seat-mgmt?retryWrites=true&w=majority');
+    await mongoose.connect(process.env.MONGO_URI);
     
     // Clean up
     await Admin.deleteOne({ username: 'demo_admin' });
